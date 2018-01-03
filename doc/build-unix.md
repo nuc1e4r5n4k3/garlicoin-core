@@ -69,13 +69,13 @@ Build requirements:
 
 Options when installing required Boost library files:
 
-1. On at least Ubuntu 14.04+ and Debian 7+ there are generic names for the
+1. USE OPTION 2 On at least Ubuntu 14.04+ and Debian 7+ there are generic names for the
 individual boost development packages, so the following can be used to only
 install necessary parts of boost:
 
         sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
 
-2. If that doesn't work, you can install all boost development packages with:
+2. USE THIS INSTEAD If that doesn't work, you can install all boost development packages with:
 
         sudo apt-get install libboost-all-dev
 
@@ -168,10 +168,10 @@ Berkeley DB
 It is recommended to use Berkeley DB 4.8. If you have to build it yourself:
 
 ```bash
-LITECOIN_ROOT=$(pwd)
+GARLICOIN_ROOT=$(pwd)
 
 # Pick some path to install BDB to, here we create a directory within the garlicoin directory
-BDB_PREFIX="${LITECOIN_ROOT}/db4"
+BDB_PREFIX="${GARLICOIN_ROOT}/db4"
 mkdir -p $BDB_PREFIX
 
 # Fetch the source and verify that it is not tampered with
@@ -187,7 +187,7 @@ cd db-4.8.30.NC/build_unix/
 make install
 
 # Configure Garlicoin Core to use our own-built instance of BDB
-cd $LITECOIN_ROOT
+cd $GARLICOIN_ROOT
 ./autogen.sh
 ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" # (other args...)
 ```
