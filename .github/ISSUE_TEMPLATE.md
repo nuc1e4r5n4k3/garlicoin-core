@@ -4,7 +4,7 @@ This issue tracker is only for technical issues related to garlicoin-core.
 
 General garlicoin questions and/or support requests and are best directed to the [garlicointalk.io forums](https://garlicointalk.io/).
 
-For reporting security issues, please contact the Garlicoin developers on the #garlicoin-dev Freenode IRC channel or alternatively you can email us at contact@garlicoin.org.
+For reporting security issues, please contact the Garlicoin developers on the #garlicoin-dev Freenode IRC channel or alternatively you can email us at contact@garlicoin.io.
 
 ### Describe the issue
 
