@@ -254,6 +254,35 @@ UniValue validateaddress(const JSONRPCRequest& request)
     return ret;
 }
 
+UniValue getwitnessaddress(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() < 1 || request.params.size() > 1)
+    {
+        std::string msg = "getwitnessaddress \"address\"\n"
+            "\nConvert a legacy p2pkh to an unofficial version 73 native p2wpkh address.\n"
+
+            "\nArguments:\n"
+            "1. \"address\"       (string, required) An address known to the wallet\n"
+
+            "\nResult:\n"
+            "\"witnessaddress\",  (string) The value of the version 73 address.\n"
+            "}\n"
+        ;
+        throw std::runtime_error(msg);
+    }
+
+    CBitcoinAddress address(request.params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Garlicoin address");
+
+    CKeyID keyId;
+    if (!address.GetKeyID(keyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a p2pkh address");
+
+    address.Set(keyId, true);
+    return address.ToString();
+}
+
 // Needed even with !ENABLE_WALLET, to pass (ignored) pointers around
 class CWallet;
 
@@ -658,6 +687,7 @@ static const CRPCCommand commands[] =
     { "control",            "getinfo",                &getinfo,                true,  {} }, /* uses wallet if enabled */
     { "control",            "getmemoryinfo",          &getmemoryinfo,          true,  {"mode"} },
     { "util",               "validateaddress",        &validateaddress,        true,  {"address"} }, /* uses wallet if enabled */
+    { "util",               "getwitnessaddress",      &getwitnessaddress,      true,  {"address"} },
     { "util",               "createmultisig",         &createmultisig,         true,  {"nrequired","keys"} },
     { "util",               "verifymessage",          &verifymessage,          true,  {"address","signature","message"} },
     { "util",               "signmessagewithprivkey", &signmessagewithprivkey, true,  {"privkey","message"} },
