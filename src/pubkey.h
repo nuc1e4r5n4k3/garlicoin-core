@@ -33,6 +33,16 @@ public:
     CKeyID(const uint160& in) : uint160(in) {}
 };
 
+/** Similar to CKeyID but specifically used for keys to be used as P2WPKH */
+class CKeyIDForWitnessProgram : public uint160
+{
+public:
+    CKeyIDForWitnessProgram() : uint160() {}
+    CKeyIDForWitnessProgram(const uint160& in) : uint160(in) {}
+
+    inline CKeyID GetID() const { return CKeyID(*this); }
+};
+
 typedef uint256 ChainCode;
 
 /** An encapsulated public key. */

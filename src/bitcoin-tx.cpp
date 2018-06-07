@@ -275,7 +275,7 @@ static void MutateTxAddOutAddr(CMutableTransaction& tx, const std::string& strIn
     if (!addr.IsValid())
         throw std::runtime_error("invalid TX output address");
     // build standard output script via GetScriptForDestination()
-    CScript scriptPubKey = GetScriptForDestination(addr.Get());
+    CScript scriptPubKey = GetScriptForDestination(addr.Get(true));
 
     // construct TxOut, append to transaction output list
     CTxOut txout(value, scriptPubKey);

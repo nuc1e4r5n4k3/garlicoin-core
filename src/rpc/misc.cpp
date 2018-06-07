@@ -140,6 +140,10 @@ public:
         return obj;
     }
 
+    UniValue operator()(const CKeyIDForWitnessProgram &keyID) const {
+        return operator()(keyID.GetID());
+    }
+
     UniValue operator()(const CScriptID &scriptID) const {
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
@@ -214,7 +218,7 @@ UniValue validateaddress(const JSONRPCRequest& request)
     ret.push_back(Pair("isvalid", isValid));
     if (isValid)
     {
-        CTxDestination dest = address.Get();
+        CTxDestination dest = address.Get(true);
         std::string currentAddress = address.ToString();
         ret.push_back(Pair("address", currentAddress));
 

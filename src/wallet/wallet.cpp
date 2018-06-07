@@ -104,6 +104,12 @@ public:
             vKeys.push_back(keyId);
     }
 
+    void operator()(const CKeyIDForWitnessProgram &keyId) {
+        CKeyID legacyKeyId = keyId.GetID();
+        if (keystore.HaveKey(legacyKeyId))
+            vKeys.push_back(legacyKeyId);
+    }
+
     void operator()(const CScriptID &scriptId) {
         CScript script;
         if (keystore.GetCScript(scriptId, script))

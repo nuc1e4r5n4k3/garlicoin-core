@@ -83,6 +83,10 @@ public:
     {
         return (exp_addrType == "pubkey");
     }
+    bool operator()(const CKeyIDForWitnessProgram &id) const
+    {
+        return (exp_addrType == "witness_v0_keyhash");
+    }
     bool operator()(const CScriptID &id) const
     {
         return (exp_addrType == "script");
@@ -101,6 +105,11 @@ private:
 public:
     TestPayloadVisitor(std::vector<unsigned char> &_exp_payload) : exp_payload(_exp_payload) { }
     bool operator()(const CKeyID &id) const
+    {
+        uint160 exp_key(exp_payload);
+        return exp_key == id;
+    }
+    bool operator()(const CKeyIDForWitnessProgram &id) const
     {
         uint160 exp_key(exp_payload);
         return exp_key == id;

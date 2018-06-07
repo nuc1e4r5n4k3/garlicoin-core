@@ -103,18 +103,20 @@ public:
  */
 class CBitcoinAddress : public CBase58Data {
 public:
-    bool Set(const CKeyID &id);
+    bool Set(const CKeyID &id, bool witnessAddress = false);
     bool Set(const CScriptID &id, CChainParams::Base58Type type=CChainParams::SCRIPT_ADDRESS2);
     bool Set(const CTxDestination &dest, CChainParams::Base58Type type=CChainParams::SCRIPT_ADDRESS2);
     bool IsValid() const;
     bool IsValid(const CChainParams &params) const;
+    bool IsWitnessPubKeyHash() const;
+    bool IsWitnessPubKeyHash(const CChainParams &params) const;
 
     CBitcoinAddress() {}
     CBitcoinAddress(const CTxDestination &dest) { Set(dest); }
     CBitcoinAddress(const std::string& strAddress) { SetString(strAddress); }
     CBitcoinAddress(const char* pszAddress) { SetString(pszAddress); }
 
-    CTxDestination Get() const;
+    CTxDestination Get(bool includeTxTypeInfo = false) const;
     bool GetKeyID(CKeyID &keyID) const;
     bool IsScript() const;
 };

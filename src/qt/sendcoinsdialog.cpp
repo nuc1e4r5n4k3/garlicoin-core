@@ -800,7 +800,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
                     QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
 
                 if(btnRetVal == QMessageBox::Yes)
-                    CoinControlDialog::coinControl->destChange = addr.Get();
+                    CoinControlDialog::coinControl->destChange = addr.Get(true);
                 else
                 {
                     ui->lineEditCoinControlChange->setText("");
@@ -813,13 +813,13 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
                 ui->labelCoinControlChangeLabel->setStyleSheet("QLabel{color:black;}");
 
                 // Query label
-                QString associatedLabel = model->getAddressTableModel()->labelForAddress(text);
+                QString associatedLabel = model->getAddressTableModel()->labelForAddress(QString::fromStdString(CBitcoinAddress(keyid).ToString()));
                 if (!associatedLabel.isEmpty())
                     ui->labelCoinControlChangeLabel->setText(associatedLabel);
                 else
                     ui->labelCoinControlChangeLabel->setText(tr("(no label)"));
 
-                CoinControlDialog::coinControl->destChange = addr.Get();
+                CoinControlDialog::coinControl->destChange = addr.Get(true);
             }
         }
     }
