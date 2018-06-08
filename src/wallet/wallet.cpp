@@ -226,8 +226,17 @@ bool CWallet::AddKeyPubKeyWithDB(CWalletDB &walletdb, const CKey& secret, const 
     }
     if (needsDB) pwalletdbEncryption = nullptr;
 
+    // Add witness v0 program redeem script
+    CBitcoinAddress witnessAddress;
+    witnessAddress.Set(pubkey.GetID(), true);
+    CScript script = GetScriptForDestination(witnessAddress.Get(true));
+    if (!(AddCScript(script)))
+        return false;
+
     // check if we need to remove from watch-only
-    CScript script;
+    if (HaveWatchOnly(script)) {
+        RemoveWatchOnly(script);
+    }
     script = GetScriptForDestination(pubkey.GetID());
     if (HaveWatchOnly(script)) {
         RemoveWatchOnly(script);
@@ -2711,7 +2720,21 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                     return false;
                 }
 
-                scriptChange = GetScriptForDestination(vchPubKey.GetID());
+                if (gArgs.GetBoolArg("-usewitnesschangeaddress", false))
+                {
+                    CBitcoinAddress witnessAddress;
+                    witnessAddress.Set(vchPubKey.GetID(), true);
+                    scriptChange = GetScriptForDestination(witnessAddress.Get(true));
+
+                    // Add witness v0 program redeem script in case key was generated with an older client version
+                    if (!HaveCScript(CScriptID(scriptChange)) && !AddCScript(scriptChange))
+                    {
+                        strFailReason = _("Unable to register witness program redeem script to wallet");
+                        return false;
+                    }
+                }
+                else
+                    scriptChange = GetScriptForDestination(vchPubKey.GetID());
             }
             CTxOut change_prototype_txout(0, scriptChange);
             size_t change_prototype_size = GetSerializeSize(change_prototype_txout, SER_DISK, 0);
@@ -3433,9 +3456,19 @@ bool CWallet::GetKeyFromPool(CPubKey& result, bool internal)
             result = GenerateNewKey(walletdb, internal);
             return true;
         }
+
+        // Add witness v0 program redeem script in case key was generated with an older client version
+        CBitcoinAddress witnessAddress;
+        witnessAddress.Set(keypool.vchPubKey.GetID(), true);
+        CScript script = GetScriptForDestination(witnessAddress.Get(true));
+
+        if (!HaveCScript(CScriptID(script)) && !AddCScript(script))
+            throw std::runtime_error(std::string(__func__) + ": Unable to register witness program redeem script to wallet");
+
         KeepKey(nIndex);
         result = keypool.vchPubKey;
     }
+
     return true;
 }
 
@@ -3907,6 +3940,7 @@ std::string CWallet::GetWalletHelpString(bool showDebug)
                                                             CURRENCY_UNIT, FormatMoney(DEFAULT_TRANSACTION_MINFEE)));
     strUsage += HelpMessageOpt("-paytxfee=<amt>", strprintf(_("Fee (in %s/kB) to add to transactions you send (default: %s)"),
                                                             CURRENCY_UNIT, FormatMoney(payTxFee.GetFeePerK())));
+    strUsage += HelpMessageOpt("-usewitnesschangeaddress", _("Generate native SegWit addresses for change outputs"));
     strUsage += HelpMessageOpt("-rescan", _("Rescan the block chain for missing wallet transactions on startup"));
     strUsage += HelpMessageOpt("-salvagewallet", _("Attempt to recover private keys from a corrupt wallet on startup"));
     strUsage += HelpMessageOpt("-spendzeroconfchange", strprintf(_("Spend unconfirmed change when sending transactions (default: %u)"), DEFAULT_SPEND_ZEROCONF_CHANGE));
