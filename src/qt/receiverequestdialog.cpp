@@ -136,13 +136,16 @@ void ReceiveRequestDialog::update()
     setWindowTitle(tr("Request payment to %1").arg(target));
 
     QString uri = GUIUtil::formatBitcoinURI(info);
+    CBitcoinAddress address(info.address.toStdString());
     ui->btnSaveAs->setEnabled(false);
     QString html;
     html += "<html><font face='verdana, arial, helvetica, sans-serif'>";
     html += "<b>"+tr("Payment information")+"</b><br>";
     html += "<b>"+tr("URI")+"</b>: ";
     html += "<a href=\""+uri+"\">" + GUIUtil::HtmlEscape(uri) + "</a><br>";
-    html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(info.address) + "<br>";
+    html += "<b>"+tr("Address")+"</b>: " + GUIUtil::HtmlEscape(QString::fromStdString(address.ToString())) + "<br>";
+    if (address.witnessify())
+        html += "<b>"+tr("(SegWit)")+"</b>: " + GUIUtil::HtmlEscape(QString::fromStdString(address.ToString())) + "<br>";
     if(info.amount)
         html += "<b>"+tr("Amount")+"</b>: " + BitcoinUnits::formatHtmlWithUnit(model->getDisplayUnit(), info.amount) + "<br>";
     if(!info.label.isEmpty())

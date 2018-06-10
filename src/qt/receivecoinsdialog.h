@@ -63,6 +63,8 @@ private:
     void copyColumnToClipboard(int column);
     virtual void resizeEvent(QResizeEvent *event);
 
+    const SendCoinsRecipient *getSelectedRecipient();
+
 private Q_SLOTS:
     void on_receiveButton_clicked();
     void on_showRequestButton_clicked();
@@ -71,6 +73,8 @@ private Q_SLOTS:
     void recentRequestsView_selectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void updateDisplayUnit();
     void showMenu(const QPoint &point);
+    void copyAddress();
+    void copyWitnessAddress();
     void copyURI();
     void copyLabel();
     void copyMessage();

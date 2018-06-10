@@ -166,7 +166,7 @@ public:
 AddressTableModel::AddressTableModel(CWallet *_wallet, WalletModel *parent) :
     QAbstractTableModel(parent),walletModel(parent),wallet(_wallet),priv(0)
 {
-    columns << tr("Label") << tr("Address");
+    columns << tr("Label") << tr("Address") << "Witness Address";
     priv = new AddressTablePriv(wallet, this);
     priv->refreshAddressTable();
 }
@@ -210,6 +210,16 @@ QVariant AddressTableModel::data(const QModelIndex &index, int role) const
             }
         case Address:
             return rec->address;
+        case WitnessAddress:
+            if (rec->type == AddressTableEntry::Receiving)
+            {
+                CBitcoinAddress address(rec->address.toStdString());
+                return address.witnessify() ? QString::fromStdString(address.ToString()) : QString();
+            }
+            else
+            {
+                return QString();
+            }
         }
     }
     else if (role == Qt::FontRole)

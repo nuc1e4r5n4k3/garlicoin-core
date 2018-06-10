@@ -25,8 +25,9 @@ public:
     ~AddressTableModel();
 
     enum ColumnIndex {
-        Label = 0,   /**< User specified label */
-        Address = 1  /**< Bitcoin address */
+        Label = 0,          /**< User specified label */
+        Address = 1,        /**< Bitcoin address */
+        WitnessAddress = 2  /**< Hidden column containing Bitcoin witness address (if applicable) */
     };
 
     enum RoleIndex {

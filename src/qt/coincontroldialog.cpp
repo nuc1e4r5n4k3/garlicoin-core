@@ -52,6 +52,7 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
 
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
+    QAction *copyWitnessAddressAction = new QAction(tr("Copy SegWit address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyAmountAction = new QAction(tr("Copy amount"), this);
              copyTransactionHashAction = new QAction(tr("Copy transaction ID"), this);  // we need to enable/disable this
@@ -61,6 +62,7 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
     // context menu
     contextMenu = new QMenu(this);
     contextMenu->addAction(copyAddressAction);
+    contextMenu->addAction(copyWitnessAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyAmountAction);
     contextMenu->addAction(copyTransactionHashAction);
@@ -71,6 +73,7 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
     // context menu signals
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showMenu(QPoint)));
     connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
+    connect(copyWitnessAddressAction, SIGNAL(triggered()), this, SLOT(copyWitnessAddress()));
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
     connect(copyAmountAction, SIGNAL(triggered()), this, SLOT(copyAmount()));
     connect(copyTransactionHashAction, SIGNAL(triggered()), this, SLOT(copyTransactionHash()));
@@ -248,13 +251,27 @@ void CoinControlDialog::copyLabel()
         GUIUtil::setClipboard(contextMenuItem->text(COLUMN_LABEL));
 }
 
+QString CoinControlDialog::getAddress()
+{
+    if (ui->radioTreeMode->isChecked() && contextMenuItem->text(COLUMN_ADDRESS).length() == 0 && contextMenuItem->parent())
+        return contextMenuItem->parent()->text(COLUMN_ADDRESS);
+    else
+        return contextMenuItem->text(COLUMN_ADDRESS);
+}
+
 // context menu action: copy address
 void CoinControlDialog::copyAddress()
 {
-    if (ui->radioTreeMode->isChecked() && contextMenuItem->text(COLUMN_ADDRESS).length() == 0 && contextMenuItem->parent())
-        GUIUtil::setClipboard(contextMenuItem->parent()->text(COLUMN_ADDRESS));
-    else
-        GUIUtil::setClipboard(contextMenuItem->text(COLUMN_ADDRESS));
+    GUIUtil::setClipboard(getAddress());
+}
+
+// context menu action: copy segwit address
+void CoinControlDialog::copyWitnessAddress()
+{
+    CBitcoinAddress address(getAddress().toStdString());
+
+    if (address.witnessify())
+        GUIUtil::setClipboard(QString::fromStdString(address.ToString()));
 }
 
 // context menu action: copy transaction id

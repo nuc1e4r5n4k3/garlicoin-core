@@ -44,6 +44,8 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
     }
 
     // context menu actions
+    QAction *copyAddressAction = new QAction(tr("Copy Address"), this);
+    QAction *copyWitnessAddressAction = new QAction(tr("Copy SegWit Address"), this);
     QAction *copyURIAction = new QAction(tr("Copy URI"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
     QAction *copyMessageAction = new QAction(tr("Copy message"), this);
@@ -51,6 +53,8 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
 
     // context menu
     contextMenu = new QMenu(this);
+    contextMenu->addAction(copyAddressAction);
+    contextMenu->addAction(copyWitnessAddressAction);
     contextMenu->addAction(copyURIAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyMessageAction);
@@ -58,6 +62,8 @@ ReceiveCoinsDialog::ReceiveCoinsDialog(const PlatformStyle *_platformStyle, QWid
 
     // context menu signals
     connect(ui->recentRequestsView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showMenu(QPoint)));
+    connect(copyAddressAction, SIGNAL(triggered()), this, SLOT(copyAddress()));
+    connect(copyWitnessAddressAction, SIGNAL(triggered()), this, SLOT(copyWitnessAddress()));
     connect(copyURIAction, SIGNAL(triggered()), this, SLOT(copyURI()));
     connect(copyLabelAction, SIGNAL(triggered()), this, SLOT(copyLabel()));
     connect(copyMessageAction, SIGNAL(triggered()), this, SLOT(copyMessage()));
@@ -263,17 +269,47 @@ void ReceiveCoinsDialog::showMenu(const QPoint &point)
     contextMenu->exec(QCursor::pos());
 }
 
-// context menu action: copy URI
-void ReceiveCoinsDialog::copyURI()
+const SendCoinsRecipient *ReceiveCoinsDialog::getSelectedRecipient()
 {
     QModelIndex sel = selectedRow();
     if (!sel.isValid()) {
-        return;
+        return NULL;
     }
 
     const RecentRequestsTableModel * const submodel = model->getRecentRequestsTableModel();
-    const QString uri = GUIUtil::formatBitcoinURI(submodel->entry(sel.row()).recipient);
-    GUIUtil::setClipboard(uri);
+    return &submodel->entry(sel.row()).recipient;
+}
+
+// context menu action: copy Address
+void ReceiveCoinsDialog::copyAddress()
+{
+    const SendCoinsRecipient *recipient = getSelectedRecipient();
+
+    if (recipient)
+        GUIUtil::setClipboard(recipient->address);
+}
+
+// context menu action: copy SegWit Address
+void ReceiveCoinsDialog::copyWitnessAddress()
+{
+    const SendCoinsRecipient *recipient = getSelectedRecipient();
+
+    if (recipient)
+    {
+        CBitcoinAddress address(recipient->address.toStdString());
+
+        if (address.witnessify())
+            GUIUtil::setClipboard(QString::fromStdString(address.ToString()));
+    }
+}
+
+// context menu action: copy URI
+void ReceiveCoinsDialog::copyURI()
+{
+    const SendCoinsRecipient *recipient = getSelectedRecipient();
+
+    if (recipient)
+        GUIUtil::setClipboard(GUIUtil::formatBitcoinURI(*recipient));
 }
 
 // context menu action: copy label

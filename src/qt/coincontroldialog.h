@@ -85,11 +85,15 @@ private:
     };
     friend class CCoinControlWidgetItem;
 
+private:
+    QString getAddress();
+
 private Q_SLOTS:
     void showMenu(const QPoint &);
     void copyAmount();
     void copyLabel();
     void copyAddress();
+    void copyWitnessAddress();
     void copyTransactionHash();
     void lockCoin();
     void unlockCoin();
