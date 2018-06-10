@@ -275,11 +275,9 @@ UniValue getwitnessaddress(const JSONRPCRequest& request)
     if (!address.IsValid())
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Garlicoin address");
 
-    CKeyID keyId;
-    if (!address.GetKeyID(keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Not a p2pkh address");
+    if (!address.witnessify())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Conversion not possible for address type");
 
-    address.Set(keyId, true);
     return address.ToString();
 }
 

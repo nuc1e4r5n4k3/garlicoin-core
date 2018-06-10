@@ -269,6 +269,16 @@ bool CBitcoinAddress::IsValid(const CChainParams& params) const
     return fCorrectSize && fKnownVersion;
 }
 
+bool CBitcoinAddress::IsLegacyPubKeyHash() const
+{
+    return IsLegacyPubKeyHash(Params());
+}
+
+bool CBitcoinAddress::IsLegacyPubKeyHash(const CChainParams& params) const
+{
+    return vchVersion == params.Base58Prefix(CChainParams::PUBKEY_ADDRESS);
+}
+
 bool CBitcoinAddress::IsWitnessPubKeyHash() const
 {
     return IsWitnessPubKeyHash(Params());
@@ -311,6 +321,15 @@ bool CBitcoinAddress::IsScript() const
 {
     return IsValid() && (vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS) ||
                          vchVersion == Params().Base58Prefix(CChainParams::SCRIPT_ADDRESS2));
+}
+
+bool CBitcoinAddress::witnessify()
+{
+    if (!IsValid() || !IsLegacyPubKeyHash())
+        return false;
+
+    vchVersion = Params().Base58Prefix(CChainParams::PUBKEY_WITNESS_ADDRESS);
+    return true;
 }
 
 void CBitcoinSecret::SetKey(const CKey& vchSecret)

@@ -108,6 +108,8 @@ public:
     bool Set(const CTxDestination &dest, CChainParams::Base58Type type=CChainParams::SCRIPT_ADDRESS2);
     bool IsValid() const;
     bool IsValid(const CChainParams &params) const;
+    bool IsLegacyPubKeyHash() const;
+    bool IsLegacyPubKeyHash(const CChainParams &params) const;
     bool IsWitnessPubKeyHash() const;
     bool IsWitnessPubKeyHash(const CChainParams &params) const;
 
@@ -119,6 +121,8 @@ public:
     CTxDestination Get(bool includeTxTypeInfo = false) const;
     bool GetKeyID(CKeyID &keyID) const;
     bool IsScript() const;
+
+    bool witnessify();
 };
 
 /**
