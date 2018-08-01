@@ -1556,6 +1556,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             bool fAlreadyHave = AlreadyHave(inv);
             LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n", inv.ToString(), fAlreadyHave ? "have" : "new", pfrom->GetId());
 
+            if (!fAlreadyHave && (inv.type == MSG_TX || inv.type == MSG_BLOCK)) {
+                LogPrintf("New %s %s from %s\n", inv.type == MSG_TX ? "tx" : "block", inv.hash.ToString(), pfrom->addr.ToString());
+            }
+
             if (inv.type == MSG_TX) {
                 inv.type |= nFetchFlags;
             }
@@ -1994,6 +1998,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             }
         }
 
+        if (pindex) {
+            LogPrintf("New block %s from %s\n", pindex->GetBlockHash().ToString(), pfrom->addr.ToString());
+        }
+
         // When we succeed in decoding a block's txids from a cmpctblock
         // message we typically jump to the BLOCKTXN handling code, with a
         // dummy (empty) BLOCKTXN message, to re-use the logic there in
@@ -2334,6 +2342,10 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         // If this set of headers is valid and ends in a block with at least as
         // much work as our tip, download as much as possible.
         if (fCanDirectFetch && pindexLast->IsValid(BLOCK_VALID_TREE) && chainActive.Tip()->nChainWork <= pindexLast->nChainWork) {
+            if (chainActive.Tip()->phashBlock && *chainActive.Tip()->phashBlock != headers[nCount-1].GetHash()) {
+                LogPrintf("New block %s from %s\n", headers[nCount-1].GetHash().ToString(), pfrom->addr.ToString());
+            }
+
             std::vector<const CBlockIndex*> vToFetch;
             const CBlockIndex *pindexWalk = pindexLast;
             // Calculate all the blocks we'd need to switch to pindexLast, up to a limit.
