@@ -22,6 +22,7 @@
 #include "primitives/block.h"
 #include "primitives/transaction.h"
 #include "random.h"
+#include "relayinfo.h"
 #include "reverse_iterator.h"
 #include "tinyformat.h"
 #include "txmempool.h"
@@ -1557,7 +1558,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             LogPrint(BCLog::NET, "got inv: %s  %s peer=%d\n", inv.ToString(), fAlreadyHave ? "have" : "new", pfrom->GetId());
 
             if (!fAlreadyHave && (inv.type == MSG_TX || inv.type == MSG_BLOCK)) {
-                LogPrintf("New %s %s from %s\n", inv.type == MSG_TX ? "tx" : "block", inv.hash.ToString(), pfrom->addr.ToString());
+                relayinfo_register_new_object(inv, *pfrom);
             }
 
             if (inv.type == MSG_TX) {
@@ -1999,7 +2000,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         }
 
         if (pindex) {
-            LogPrintf("New block %s from %s\n", pindex->GetBlockHash().ToString(), pfrom->addr.ToString());
+            relayinfo_register_new_object(pindex->GetBlockHash(), pfrom->addr, MSG_BLOCK);
         }
 
         // When we succeed in decoding a block's txids from a cmpctblock
@@ -2343,7 +2344,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         // much work as our tip, download as much as possible.
         if (fCanDirectFetch && pindexLast->IsValid(BLOCK_VALID_TREE) && chainActive.Tip()->nChainWork <= pindexLast->nChainWork) {
             if (chainActive.Tip()->phashBlock && *chainActive.Tip()->phashBlock != headers[nCount-1].GetHash()) {
-                LogPrintf("New block %s from %s\n", headers[nCount-1].GetHash().ToString(), pfrom->addr.ToString());
+                relayinfo_register_new_object(headers[nCount-1].GetHash(), pfrom->addr, MSG_BLOCK);
             }
 
             std::vector<const CBlockIndex*> vToFetch;

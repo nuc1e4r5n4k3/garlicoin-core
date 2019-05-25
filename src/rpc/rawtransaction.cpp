@@ -16,6 +16,7 @@
 #include "policy/policy.h"
 #include "policy/rbf.h"
 #include "primitives/transaction.h"
+#include "relayinfo.h"
 #include "rpc/server.h"
 #include "script/script.h"
 #include "script/script_error.h"
@@ -41,7 +42,8 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry)
     // Blockchain contextual information (confirmations and blocktime) is not
     // available to code in bitcoin-common, so we query them here and push the
     // data into the returned UniValue.
-    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags());
+    std::string relayedBy = relayinfo_get_source_for(tx.GetHash());
+    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags(), relayedBy.empty() ? NULL : &relayedBy);
 
     if (!hashBlock.IsNull()) {
         entry.push_back(Pair("blockhash", hashBlock.GetHex()));
@@ -480,7 +482,10 @@ UniValue decoderawtransaction(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX decode failed");
 
     UniValue result(UniValue::VOBJ);
-    TxToUniv(CTransaction(std::move(mtx)), uint256(), result, false);
+    CTransaction tx(std::move(mtx));
+
+    std::string relayedBy = relayinfo_get_source_for(tx.GetHash());
+    TxToUniv(tx, uint256(), result, false, 0, relayedBy.empty() ? NULL : &relayedBy);
 
     return result;
 }

@@ -25,6 +25,8 @@
 #include "utilstrencodings.h"
 #include "hash.h"
 
+#include "relayinfo.h"
+
 #include <stdint.h>
 
 #include <univalue.h>
@@ -125,7 +127,8 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
         if(txDetails)
         {
             UniValue objTx(UniValue::VOBJ);
-            TxToUniv(*tx, uint256(), objTx, true, RPCSerializationFlags());
+            std::string relayedBy = relayinfo_get_source_for(tx->GetHash());
+            TxToUniv(*tx, uint256(), objTx, true, RPCSerializationFlags(), relayedBy.empty() ? NULL : &relayedBy);
             txs.push_back(objTx);
         }
         else
@@ -144,6 +147,10 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
+
+    std::string relayedBy = relayinfo_get_source_for(blockindex->GetBlockHash());
+    result.push_back(relayedBy.empty() ? Pair("relayedby", NullUniValue) : Pair("relayedby", relayedBy));
+
     return result;
 }
 
