@@ -127,8 +127,8 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
         if(txDetails)
         {
             UniValue objTx(UniValue::VOBJ);
-            std::string relayedBy = relayinfo_get_source_for(tx->GetHash());
-            TxToUniv(*tx, uint256(), objTx, true, RPCSerializationFlags(), relayedBy.empty() ? NULL : &relayedBy);
+            CRelayInfo relayInfo = relayinfo_get_info_for(tx->GetHash());
+            TxToUniv(*tx, uint256(), objTx, true, RPCSerializationFlags(), relayInfo.hasInfo() ? &relayInfo : NULL);
             txs.push_back(objTx);
         }
         else
@@ -148,8 +148,9 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
 
-    std::string relayedBy = relayinfo_get_source_for(blockindex->GetBlockHash());
-    result.push_back(relayedBy.empty() ? Pair("relayedby", NullUniValue) : Pair("relayedby", relayedBy));
+    CRelayInfo relayInfo = relayinfo_get_info_for(blockindex->GetBlockHash());
+    result.push_back(relayInfo.hasInfo() ? Pair("relayedby", relayInfo.source()) : Pair("relayedby", NullUniValue));
+    result.push_back(relayInfo.hasInfo() ? Pair("relayedat", (int64_t) relayInfo.timestamp()) : Pair("relayedat", NullUniValue));
 
     return result;
 }

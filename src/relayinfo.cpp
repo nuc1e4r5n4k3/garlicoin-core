@@ -2,42 +2,27 @@
 
 #include "sync.h"   /* For CCriticalSection */
 
-class RelayInfo
-{
-    public:
-        inline RelayInfo(const uint256 &object = uint256(), const std::string &source = "") :
-            _object(object),
-            _source(source)
-        {
-        }
+#include <time.h>
 
-        inline bool inUse(void) const
-        {
-            return this->source().empty();
-        }
-
-        inline const uint256 &object(void) const
-        {
-            return this->_object;
-        }
-
-        inline const std::string &source(void) const
-        {
-            return this->_source;
-        }
-
-    private:
-        uint256 _object;
-        std::string _source;
-};
 
 #define RINGBUF_SIZE            256
 
 #define RINGBUF_PREV(src)       (((src) + RINGBUF_SIZE - 1) % RINGBUF_SIZE)
 #define RINGBUF_NEXT(src)       (((src) + 1) % RINGBUF_SIZE)
 
+
+CRelayInfo::CRelayInfo(const uint256 &object, const std::string &source, time_t receivedAt) :
+    _object(object),
+    _source(source),
+    _timestamp(receivedAt)
+{
+    if (!_timestamp && !source.empty())
+        time(&_timestamp);
+}
+
+
 static CCriticalSection Lock;
-static RelayInfo RingBuffer[RINGBUF_SIZE];
+static CRelayInfo RingBuffer[RINGBUF_SIZE];
 static int lastWrite = -1;
 
 
@@ -64,16 +49,37 @@ static bool _is_public(const CNetAddr &addr)
     return false;
 }
 
+static const CRelayInfo &_relayinfo_get_info_for_nolock(const uint256 &object)
+{
+    static const CRelayInfo NoInfo = CRelayInfo();
+
+    /* Sanity check */
+    if (lastWrite < 0 || lastWrite >= RINGBUF_SIZE)
+        return NoInfo;
+
+    int idx = lastWrite; do
+    {
+        const CRelayInfo &info = RingBuffer[idx];
+        idx = RINGBUF_PREV(idx);
+
+        if (info.object() == object)
+            return info;
+    }
+    while (idx != lastWrite);
+
+    return NoInfo;
+}
+
 static bool _relayinfo_register_new_object(const uint256 &object, const std::string &source)
 {
     LOCK(Lock);
 
-    if (!relayinfo_get_source_for(object).empty())
+    if (_relayinfo_get_info_for_nolock(object).hasInfo())
         return false;
 
     lastWrite = RINGBUF_NEXT(lastWrite);
 
-    RingBuffer[lastWrite] = RelayInfo(object, source);
+    RingBuffer[lastWrite] = CRelayInfo(object, source);
     return true;
 }
 
@@ -100,24 +106,15 @@ void relayinfo_register_new_object(const CInv &object, const CNode &source)
     relayinfo_register_new_object(object.hash, source.addr, object.type);
 }
 
+CRelayInfo relayinfo_get_info_for(const uint256 &object)
+{
+    LOCK(Lock);
+    return _relayinfo_get_info_for_nolock(object);
+}
+
 std::string relayinfo_get_source_for(const uint256 &object)
 {
-    /* Sanity check */
-    if (lastWrite < 0 || lastWrite >= RINGBUF_SIZE)
-        return "";
-
     LOCK(Lock);
-
-    int idx = lastWrite; do
-    {
-        const RelayInfo &info = RingBuffer[idx];
-        idx = RINGBUF_PREV(idx);
-
-        if (info.object() == object)
-            return info.source();
-    }
-    while (idx != lastWrite);
-
-    return "";
+    return _relayinfo_get_info_for_nolock(object).source();
 }
 

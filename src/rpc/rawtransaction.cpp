@@ -42,8 +42,8 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry)
     // Blockchain contextual information (confirmations and blocktime) is not
     // available to code in bitcoin-common, so we query them here and push the
     // data into the returned UniValue.
-    std::string relayedBy = relayinfo_get_source_for(tx.GetHash());
-    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags(), relayedBy.empty() ? NULL : &relayedBy);
+    CRelayInfo relayInfo = relayinfo_get_info_for(tx.GetHash());
+    TxToUniv(tx, uint256(), entry, true, RPCSerializationFlags(), relayInfo.hasInfo() ? &relayInfo : NULL);
 
     if (!hashBlock.IsNull()) {
         entry.push_back(Pair("blockhash", hashBlock.GetHex()));
@@ -484,8 +484,8 @@ UniValue decoderawtransaction(const JSONRPCRequest& request)
     UniValue result(UniValue::VOBJ);
     CTransaction tx(std::move(mtx));
 
-    std::string relayedBy = relayinfo_get_source_for(tx.GetHash());
-    TxToUniv(tx, uint256(), result, false, 0, relayedBy.empty() ? NULL : &relayedBy);
+    CRelayInfo relayInfo = relayinfo_get_info_for(tx.GetHash());
+    TxToUniv(tx, uint256(), result, false, 0, relayInfo.hasInfo() ? &relayInfo : NULL);
 
     return result;
 }
