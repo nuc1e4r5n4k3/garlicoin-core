@@ -190,6 +190,8 @@ static void SetProgressBreakAction(SplashScreen *splash, const std::function<voi
 #ifdef ENABLE_WALLET
 void SplashScreen::ConnectWallet(CWallet* wallet)
 {
+    using namespace boost::placeholders;
+
     wallet->ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
     connectedWallets.push_back(wallet);
 }
@@ -197,6 +199,8 @@ void SplashScreen::ConnectWallet(CWallet* wallet)
 
 void SplashScreen::subscribeToCoreSignals()
 {
+    using namespace boost::placeholders;
+
     // Connect signals to client
     uiInterface.InitMessage.connect(boost::bind(InitMessage, this, _1));
     uiInterface.ShowProgress.connect(boost::bind(ShowProgress, this, _1, _2));
@@ -208,6 +212,8 @@ void SplashScreen::subscribeToCoreSignals()
 
 void SplashScreen::unsubscribeFromCoreSignals()
 {
+    using namespace boost::placeholders;
+
     // Disconnect signals from client
     uiInterface.InitMessage.disconnect(boost::bind(InitMessage, this, _1));
     uiInterface.ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));

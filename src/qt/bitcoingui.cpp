@@ -1174,6 +1174,8 @@ static bool ThreadSafeMessageBox(BitcoinGUI *gui, const std::string& message, co
 
 void BitcoinGUI::subscribeToCoreSignals()
 {
+    using namespace boost::placeholders;
+
     // Connect signals to client
     uiInterface.ThreadSafeMessageBox.connect(boost::bind(ThreadSafeMessageBox, this, _1, _2, _3));
     uiInterface.ThreadSafeQuestion.connect(boost::bind(ThreadSafeMessageBox, this, _1, _3, _4));
@@ -1181,6 +1183,8 @@ void BitcoinGUI::subscribeToCoreSignals()
 
 void BitcoinGUI::unsubscribeFromCoreSignals()
 {
+    using namespace boost::placeholders;
+
     // Disconnect signals from client
     uiInterface.ThreadSafeMessageBox.disconnect(boost::bind(ThreadSafeMessageBox, this, _1, _2, _3));
     uiInterface.ThreadSafeQuestion.disconnect(boost::bind(ThreadSafeMessageBox, this, _1, _3, _4));
