@@ -116,6 +116,12 @@ bool DecodeHexTx(CMutableTransaction& tx, const std::string& strHexTx, bool fTry
 
     std::vector<unsigned char> txData(ParseHex(strHexTx));
 
+    /* Don't try NO_WITNESS if witness flag is set */
+    if (fTryNoWitness) {
+        if (txData.size() >= 6 && txData[0] >= 0x02 && txData[4] == 0x00 && (txData[5] & 0x01))
+            fTryNoWitness = false;
+    }
+
     if (fTryNoWitness) {
         CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS);
         try {
