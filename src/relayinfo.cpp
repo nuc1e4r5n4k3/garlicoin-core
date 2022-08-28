@@ -5,7 +5,8 @@
 #include <time.h>
 
 
-#define RINGBUF_SIZE            256
+/* NOTE: This is used for block finalization: No data means no finalization! */
+#define RINGBUF_SIZE            4096
 
 #define RINGBUF_PREV(src)       (((src) + RINGBUF_SIZE - 1) % RINGBUF_SIZE)
 #define RINGBUF_NEXT(src)       (((src) + 1) % RINGBUF_SIZE)
