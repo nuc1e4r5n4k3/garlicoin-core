@@ -17,6 +17,7 @@
 #include "net.h"
 #include "policy/fees.h"
 #include "pow.h"
+#include "relayinfo.h"
 #include "rpc/blockchain.h"
 #include "rpc/mining.h"
 #include "rpc/server.h"
@@ -761,6 +762,12 @@ UniValue submitblock(const JSONRPCRequest& request)
             return "duplicate-inconclusive";
         }
         return "duplicate";
+    }
+    else {
+        static const uint8_t localhostRaw[] = { 127, 0, 0, 1 };
+        CNetAddr localhost;
+        localhost.SetRaw(NET_IPV4, localhostRaw);
+        relayinfo_register_new_object(block.GetHash(), localhost, MSG_BLOCK);
     }
     if (!sc.found) {
         return "inconclusive";
