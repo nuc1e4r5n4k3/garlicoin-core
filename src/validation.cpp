@@ -2221,6 +2221,7 @@ static bool FinalizeBlockInternal(CValidationState &state, const CBlockIndex *pi
 
     // We have a new block to finalize.
     pindexFinalized = pindex;
+    LogPrintf("FinalizeBlock(): Finalized block %s, height %d, depth %d\n", pindexFinalized->GetBlockHash().ToString(), pindexFinalized->nHeight, chainActive.Height() - pindexFinalized->nHeight);
     return true;
 }
 
@@ -2246,6 +2247,7 @@ static const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
     // finalization should be avoided. Header receive time is not saved to disk
     // and so cannot be anterior to startup time.
     if (now < (GetStartupTime() + finalizationdelay)) {
+        LogPrintf("FindBlockToFinalize(): Skipping block finalization: %d seconds before post-startup window expires\n", GetStartupTime() + finalizationdelay - now);
         return nullptr;
     }
 
@@ -2264,6 +2266,15 @@ static const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
         // If finalization delay is <= 0, finalization always occurs immediately
         if (headerReceivedTime && now >= (headerReceivedTime + finalizationdelay)) {
             return pindex;
+        }
+
+        if (pindex->pprev == pindexFinalized)
+        {
+            if (!headerReceivedTime)
+                LogPrintf("FindBlockToFinalize(): Skipping finalization: next finalization candidate is missing metadata\n");
+            else
+                LogPrintf("FindBlockToFinalize(): Next finalization candidate becomes available in %d seconds\n", headerReceivedTime + finalizationdelay - now);
+            break;
         }
 
         pindex = pindex->pprev;
