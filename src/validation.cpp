@@ -2268,7 +2268,8 @@ static const CBlockIndex *FindBlockToFinalize(CBlockIndex *pindexNew)
             return pindex;
         }
 
-        if (pindex->pprev == pindexFinalized)
+        // Don't walk the entire chain looking for metadata that isn't there
+        if (pindex->pprev == pindexFinalized || (!headerReceivedTime && !pindexFinalized))
         {
             if (!headerReceivedTime)
                 LogPrintf("FindBlockToFinalize(): Skipping finalization: next finalization candidate is missing metadata\n");
